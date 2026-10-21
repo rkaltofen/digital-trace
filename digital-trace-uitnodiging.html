@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Cache-Control" content="no-store">
+<title>CASE DIGITAL TRACE — Persoonlijke uitnodiging</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#090f1e;color:#eff5ff}*{box-sizing:border-box}body{margin:0}main{max-width:790px;margin:auto;padding:32px 18px 70px}.eyebrow{color:#45d9c9;font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:12px}h1{font-size:clamp(2rem,6vw,3rem);margin:12px 0}h2{font-size:1.22rem}p{line-height:1.6;color:#c3d2e8}.panel{background:#131e31;border:1px solid #30415b;border-radius:16px;padding:23px;margin:20px 0}label{display:block;margin:14px 0 6px;font-weight:650}input:not([type=checkbox]){display:block;width:100%;padding:13px;border:1px solid #53637b;border-radius:9px;background:#091526;color:white;font:inherit}button{border:0;border-radius:9px;padding:12px 17px;background:#44c9bb;color:#071c24;font:inherit;font-weight:750;cursor:pointer}button.secondary{background:#30445e;color:white}button:disabled{opacity:.5;cursor:not-allowed}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.message{background:#091526;border-left:4px solid #45c9af;padding:12px;border-radius:10px;margin-top:15px;white-space:pre-wrap;overflow-wrap:anywhere}.error{border-left-color:#ff8080}.tag{display:inline-block;background:#12343f;color:#6ff4d7;border-radius:22px;padding:7px 12px;font-size:12px;font-weight:750}.muted{font-size:13px;color:#a9bbd1}.check{display:flex;align-items:flex-start;gap:10px;line-height:1.5;margin:20px 0}.check input{width:20px;height:20px;flex-shrink:0;accent-color:#44c9bb;margin-top:2px}[hidden]{display:none!important}a{color:#85e7da}.meta{background:#091526;padding:14px;border-radius:9px;line-height:1.7;overflow-wrap:anywhere}button:focus-visible,input:focus-visible{outline:3px solid #86eadc;outline-offset:3px}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">Cybersecurity · CASE DIGITAL TRACE</div>
+<h1>Persoonlijke uitnodiging</h1>
+<span class="tag">Versie 3.0 · Vrijwillig en eenmalig</span>
+<p>Je hebt een uitnodiging ontvangen om <strong>één keer</strong> je huidige locatie met de Digital Trace-beheerder te delen. Je beslist zelf of je meedoet. De pagina gebruikt geen camera en volgt je locatie niet voortdurend.</p>
+<section class="panel" aria-labelledby="invitationHeading">
+<h2 id="invitationHeading">1. Je uitnodiging</h2>
+<div id="invitationMsg" class="message" role="status" aria-live="polite">Je uitnodiging wordt gecontroleerd. Er wordt nog geen locatie opgevraagd.</div>
+<div class="meta" id="invitationDetails" hidden>
+<strong>Uitnodiging:</strong> <span id="invitationLabel"></span><br>
+<strong>Geldig tot:</strong> <span id="invitationExpiry"></span><br>
+<span class="muted">De uitnodigingslink kan maar één keer worden gebruikt. Deel de link niet met anderen.</span>
+</div>
+<div class="actions"><button id="retryBtn" class="secondary" type="button" hidden>Opnieuw controleren</button></div>
+</section>
+<section class="panel" id="sharePanel" hidden aria-labelledby="gpsHeading">
+<h2 id="gpsHeading">2. Je GPS-locatie opvragen</h2>
+<p>Druk alleen op deze knop als je zelf wilt zien welke locatie je telefoon meet. Het opvragen verstuurt nog niets naar de beheerder.</p>
+<div class="actions"><button id="gpsBtn" type="button">GPS-locatie opvragen</button></div>
+<div id="gpsMsg" class="message" role="status" aria-live="polite">Er is nog geen locatie opgevraagd.</div>
+<h2 style="margin-top:30px">3. Bewust eenmalig verzenden</h2>
+<label for="participantName">Naam (optioneel)</label><input id="participantName" type="text" maxlength="80" autocomplete="off" placeholder="Leeg laten mag">
+<label class="check" for="consent"><input type="checkbox" id="consent"><span>Ik geef vrijwillig toestemming om <strong>één GPS-meting</strong> (breedtegraad, lengtegraad en nauwkeurigheid), het tijdstip en eventueel mijn ingevulde naam naar de Digital Trace-beheerder te versturen. Deze gegevens worden maximaal 24 uur als geldige registratie aangemerkt, maar <strong>automatische definitieve verwijdering is nog niet ingericht</strong>. Ik kan ook besluiten niets te versturen.</span></label>
+<button id="sendBtn" type="button" disabled>Deel mijn locatie eenmalig</button>
+<div id="sendMsg" class="message" role="status" aria-live="polite">Er is nog niets verzonden.</div>
+</section>
+<p class="muted">Privacy: je locatie wordt pas opgevraagd na jouw knopdruk en pas verzonden na je uitdrukkelijke toestemming en extra bevestiging. Er worden geen foto's gemaakt. Gebruik deze proefversie alleen met toestemming en bij voorkeur met je eigen testtoestel. Persoonlijke linktokens zijn vertrouwelijk.</p>
+</main>
+<script>
+'use strict';
+const base = 'https://dtydcmdxitjqzoanqycy.supabase.co/functions/v1/';
+const apiKey = 'sb_publishable_6x6T2STAnxkE8CBW1OGoYQ_-D2ezPca';
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(window.location.search);
+let token = params.get('token');
+// Verwijder het geheim direct uit de zichtbare adresbalk / browsergeschiedenis van deze pagina.
+if (window.location.search) history.replaceState(null, '', window.location.pathname);
+let valid = false, position = null, sent = false, busy = false;
+function msg(id,text,error=false){$(id).textContent=text;$(id).className='message'+(error?' error':'');}
+function updateSend(){ $('sendBtn').disabled = !valid || !position || !$('consent').checked || busy || sent; }
+async function post(functionName,payload){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),20000);
+  try {
+    const response=await fetch(base+functionName,{method:'POST',mode:'cors',cache:'no-store',referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json','apikey':apiKey},body:JSON.stringify(payload),signal:controller.signal});
+    const result=await response.json().catch(()=>({}));
+    return {response,result};
+  } finally {clearTimeout(timer);}
+}
+async function validate(){
+  valid=false; position=null; $('sharePanel').hidden=true; $('invitationDetails').hidden=true; $('retryBtn').hidden=true;
+  if (!token || !/^[a-f0-9]{64}$/.test(token)) {msg('invitationMsg','Deze uitnodigingslink ontbreekt of is ongeldig.',true);return;}
+  msg('invitationMsg','Uitnodiging controleren… Er wordt geen GPS-locatie opgevraagd.');
+  try {
+    const {response,result}=await post('digital-trace-validate',{token});
+    if(!response.ok || result.valid!==true){
+      msg('invitationMsg',(result.message||'De uitnodiging kon niet worden gecontroleerd.')+' (HTTP '+response.status+')',true);
+      if(response.status>=500) $('retryBtn').hidden=false;
+      return;
+    }
+    valid=true;
+    $('invitationLabel').textContent=typeof result.label==='string'?result.label:'Persoonlijke uitnodiging';
+    const expires = new Date(result.expires_at);
+    $('invitationExpiry').textContent=Number.isNaN(expires.getTime())?'Niet bekend':expires.toLocaleString('nl-NL',{dateStyle:'long',timeStyle:'short'});
+    $('invitationDetails').hidden=false;
+    $('sharePanel').hidden=false;
+    msg('invitationMsg','Uitnodiging geldig. Je kunt nu zelf beslissen of je een locatie wilt opvragen.');
+    updateSend();
+  } catch(e) {msg('invitationMsg','Uitnodiging controleren mislukt. Controleer je internetverbinding en probeer opnieuw.',true);$('retryBtn').hidden=false;}
+}
+$('retryBtn').addEventListener('click',validate);
+$('gpsBtn').addEventListener('click',()=>{
+  if(!valid || sent || busy)return;
+  if(!navigator.geolocation){msg('gpsMsg','Je browser ondersteunt geen GPS-locatie.',true);return;}
+  $('gpsBtn').disabled=true; position=null; $('consent').checked=false; updateSend();
+  msg('gpsMsg','GPS-meting opvragen… Geef alleen toestemming als je dat zelf wilt.');
+  navigator.geolocation.getCurrentPosition((p)=>{
+    position={latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy_meters:p.coords.accuracy};
+    $('gpsBtn').disabled=false;
+    msg('gpsMsg',`Locatie gemeten.\nBreedtegraad: ${position.latitude.toFixed(5)}\nLengtegraad: ${position.longitude.toFixed(5)}\nNauwkeurigheid: ongeveer ${Math.round(position.accuracy_meters)} meter.\nNog niets verzonden.`);
+    updateSend();
+  },(e)=>{
+    $('gpsBtn').disabled=false;
+    const help=e.code===1?'Toestemming voor locatie is geweigerd.':e.code===3?'GPS-meting duurde te lang.':'Locatie is niet beschikbaar.';
+    msg('gpsMsg',help+' Je kunt de uitnodiging ook zonder delen sluiten.',true);updateSend();
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+});
+$('consent').addEventListener('change',updateSend);
+$('sendBtn').addEventListener('click',async()=>{
+  if(!valid || !position || !$('consent').checked || busy || sent)return;
+  if(!window.confirm('Wil je deze ene GPS-meting echt naar de Digital Trace-beheerder versturen? De uitnodiging kan daarna niet opnieuw gebruikt worden.'))return;
+  busy=true;updateSend();msg('sendMsg','Je eenmalige GPS-meting wordt verzonden…');
+  try {
+    const {response,result}=await post('digital-trace-accept',{token,consent:true,participant_name:$('participantName').value.trim(),...position});
+    if(!response.ok){msg('sendMsg',(result.message||'Verzenden mislukt.')+' (HTTP '+response.status+')',true);if(response.status===403){valid=false;$('gpsBtn').disabled=true;}return;}
+    sent=true;token=null;position=null;$('consent').checked=false;$('gpsBtn').disabled=true;$('participantName').disabled=true;
+    msg('sendMsg','Gelukt! Je GPS-meting is eenmalig gedeeld. Je uitnodigingslink is nu gebruikt. Je kunt dit venster sluiten.');
+    msg('invitationMsg','Uitnodiging gebruikt — bedankt voor je vrijwillige deelname.');
+  } catch(e){msg('sendMsg','Verzenden is niet bevestigd. Controleer je verbinding. Bij twijfel niet opnieuw proberen voordat de beheerder de registratie heeft gecontroleerd.',true);}
+  finally{busy=false;updateSend();}
+});
+validate();
+</script>
+</body></html>
