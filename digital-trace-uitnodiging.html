@@ -25,6 +25,7 @@
 </div>
 <div class="actions"><button id="retryBtn" class="secondary" type="button" hidden>Opnieuw controleren</button></div>
 </section>
+<p><a href="digital-trace-privacy.html" target="_blank" rel="noopener noreferrer">Lees eerst de uitleg over privacy en vrijwillige deelname</a> (opent in een nieuw tabblad).</p>
 <section class="panel" id="sharePanel" hidden aria-labelledby="gpsHeading">
 <h2 id="gpsHeading">2. Je GPS-locatie opvragen</h2>
 <p>Druk alleen op deze knop als je zelf wilt zien welke locatie je telefoon meet. Het opvragen verstuurt nog niets naar de beheerder.</p>
@@ -32,7 +33,8 @@
 <div id="gpsMsg" class="message" role="status" aria-live="polite">Er is nog geen locatie opgevraagd.</div>
 <h2 style="margin-top:30px">3. Bewust eenmalig verzenden</h2>
 <label for="participantName">Naam (optioneel)</label><input id="participantName" type="text" maxlength="80" autocomplete="off" placeholder="Leeg laten mag">
-<label class="check" for="consent"><input type="checkbox" id="consent"><span>Ik geef vrijwillig toestemming om <strong>één GPS-meting</strong> (breedtegraad, lengtegraad en nauwkeurigheid), het tijdstip en eventueel mijn ingevulde naam naar de Digital Trace-beheerder te versturen. Deze gegevens worden maximaal 24 uur als geldige registratie aangemerkt, maar <strong>automatische definitieve verwijdering is nog niet ingericht</strong>. Ik kan ook besluiten niets te versturen.</span></label>
+<p class="muted">Lees vóór verzenden de <a href="digital-trace-privacy.html" target="_blank" rel="noopener noreferrer">privacyuitleg</a>.</p>
+<label class="check" for="consent"><input type="checkbox" id="consent"><span>Ik geef vrijwillig toestemming om <strong>één GPS-meting</strong> (breedtegraad, lengtegraad en nauwkeurigheid), het tijdstip en eventueel mijn ingevulde naam naar de Digital Trace-beheerder te versturen. Deze gegevens worden maximaal 24 uur als geldige registratie aangemerkt, maar <strong>de database heeft een automatische verwijdertaak die verlopen GPS-registraties periodiek opruimt</strong>. Ik kan ook besluiten niets te versturen.</span></label>
 <button id="sendBtn" type="button" disabled>Deel mijn locatie eenmalig</button>
 <div id="sendMsg" class="message" role="status" aria-live="polite">Er is nog niets verzonden.</div>
 </section>
