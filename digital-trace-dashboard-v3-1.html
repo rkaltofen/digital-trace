@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CASE DIGITAL TRACE — Beheerdersdashboard</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#090f1e;color:#eff5ff}*{box-sizing:border-box}body{margin:0}main{max-width:960px;margin:0 auto;padding:35px 20px 60px}.eyebrow{font-size:12px;letter-spacing:.16em;color:#45d9c9;font-weight:800;text-transform:uppercase}h1{font-size:clamp(2rem,5vw,3.2rem);margin:12px 0}p{line-height:1.6;color:#c3d2e8}.tag{display:inline-block;background:#12343f;color:#6ff4d7;border-radius:30px;padding:7px 12px;font-size:12px;font-weight:700}.panel{background:#131e31;border:1px solid #30415b;border-radius:17px;padding:24px;margin-top:22px}h2{font-size:19px;margin:0 0 14px}label{display:block;color:#dce9f7;font-weight:600;margin:14px 0 6px}input{display:block;width:100%;border:1px solid #53637b;border-radius:9px;padding:13px;background:#091526;color:#fff;font:inherit}button,.btn{border:0;border-radius:9px;background:#44c9bb;color:#051c24;padding:12px 17px;font-weight:800;cursor:pointer;font:inherit;font-weight:750}button.secondary{background:#2e415d;color:white}button.danger{background:#6c3141;color:#fff}button:disabled{opacity:.45;cursor:not-allowed}.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}.muted{font-size:13px;color:#9bb0c8}.message{padding:12px;border-radius:10px;background:#091526;color:#e7f5ff;margin-top:15px;white-space:pre-wrap}.error{border-left:4px solid #fb7a7a}.success{border-left:4px solid #45c9af}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;border-bottom:1px solid #30415b;padding:11px 9px;vertical-align:top}th{color:#a8bfd7}a{color:#7ff0d8} .tablewrap{overflow:auto}.invite-result{overflow-wrap:anywhere}.invite-result a{word-break:break-all}.notice{border-left:4px solid #f6c177}.invite-actions{display:flex;flex-wrap:wrap;gap:10px}.compact{font-size:13px} [hidden]{display:none!important}.creator{color:#7ff0d8;font-size:14px;margin:13px 0 17px}.creator strong{color:#f4f8ff}.creator-role{color:#9bb0c8}footer{margin-top:30px;color:#879db7;font-size:13px}code{overflow-wrap:anywhere;color:#c2f9eb}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">Cybersecurity · CASE DIGITAL TRACE</div>
+<h1>Beheerdersdashboard</h1><span class="tag">Versie 3.1 · Persoonlijke uitnodigingen</span>
+<p class="creator">Ontwikkeld door <strong>René Kaltofen</strong> <span class="creator-role">· Ontwerper en maker van CASE DIGITAL TRACE</span></p>
+<p>Log in om vrijwillig gedeelde locatiegegevens te bekijken. Dit dashboard vraagt zelf geen GPS- of cameratoegang en verzamelt geen gegevens van bezoekers.</p>
+<section id="loginPanel" class="panel"><h2>Inloggen als beheerder</h2><form id="loginForm"><label for="email">E-mailadres</label><input id="email" type="email" autocomplete="username" required placeholder="naam@voorbeeld.nl"><label for="password">Wachtwoord</label><input id="password" type="password" autocomplete="current-password" required placeholder="Je dashboardwachtwoord"><div class="actions"><button type="submit" id="loginButton">Veilig inloggen</button></div></form><div id="loginMessage" class="message" role="status">Gebruik het gebruikersaccount dat je in Supabase Authentication hebt aangemaakt.</div></section>
+<section id="dashboardPanel" hidden><div class="panel"><h2>Beheerder aangemeld</h2><p id="userLabel"></p><div class="actions"><button id="refreshButton">Locaties vernieuwen</button><button class="secondary" id="logoutButton">Uitloggen</button></div><div id="dashboardMessage" class="message" role="status"></div></div><div class="panel"><h2>Persoonlijke WhatsApp-link maken</h2><p>Maak een unieke uitnodiging die na 24 uur verloopt. Alleen jij als beheerder kunt uitnodigingen aanmaken.</p><form id="inviteForm"><label for="inviteLabel">Naam of omschrijving (1–80 tekens)</label><input id="inviteLabel" type="text" minlength="1" maxlength="80" required placeholder="Bijvoorbeeld: Vrijwillige testpersoon 1"><div class="actions"><button id="createInviteButton" type="submit">Persoonlijke link maken</button></div></form><div id="inviteMessage" class="message notice" role="status">Persoonlijke uitnodigingen zijn technisch getest. Gebruik voorlopig uitsluitend je eigen testtoestel totdat de privacy- en beveiligingscontroles zijn afgerond.</div><div id="inviteResult" class="invite-result" hidden><label for="inviteLink">Gegenereerde persoonlijke uitnodigingslink</label><input id="inviteLink" readonly><p id="inviteExpires" class="muted"></p><div class="invite-actions"><button id="copyInviteButton" class="secondary">Persoonlijke link kopiëren</button></div></div></div><div class="panel"><h2>Vrijwillig gedeelde locaties</h2><p class="muted">Alleen locaties die expliciet zijn gedeeld. Registraties die deelnemers na toestemming hebben verstuurd.</p><div class="tablewrap"><table><thead><tr><th>Ontvangen</th><th>Deelnemer</th><th>Locatie</th><th>Nauwkeurigheid</th><th>Actie</th></tr></thead><tbody id="reportsBody"><tr><td colspan="5">Nog geen gegevens opgehaald.</td></tr></tbody></table></div></div></section>
+<footer>Privacy: dit dashboard toont alleen met toestemming verzonden gegevens. Gebruik echte locaties uitsluitend met geïnformeerde toestemming. De publieke website bevat geen beheerderswachtwoorden of geheime API-sleutels.<div class="creator" style="margin-top:12px">© 2026 René Kaltofen · Ontwikkeling en concept CASE DIGITAL TRACE</div></footer>
+</main>
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const url='https://dtydcmdxitjqzoanqycy.supabase.co';
+const key='sb_publishable_6x6T2STAnxkE8CBW1OGoYQ_-D2ezPca';
+const supabase=createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const $=id=>document.getElementById(id);
+function msg(id,text,isError=false){const e=$(id);e.textContent=text;e.className='message '+(isError?'error':'success')}
+async function showLogin(){ $('dashboardPanel').hidden=true;$('loginPanel').hidden=false;$('password').value=''; }
+async function showDashboard(user){ $('loginPanel').hidden=true;$('dashboardPanel').hidden=false;$('userLabel').textContent='Ingelogd als '+(user.email||'beheerder');await loadReports(); }
+async function verifyAdmin(){const {data,error}=await supabase.rpc('is_digital_trace_admin');if(error)throw new Error('De beheerderscontrole is niet bereikbaar: '+error.message);return data===true;}
+async function beginSession(){const {data:{user}}=await supabase.auth.getUser();if(!user){await showLogin();return;}try{if(!await verifyAdmin()){await supabase.auth.signOut();await showLogin();msg('loginMessage','Dit account heeft geen beheerdersrechten.',true);return;}await showDashboard(user);}catch(e){await showLogin();msg('loginMessage',e.message,true)}}
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('loginButton').disabled=true;msg('loginMessage','Aanmelding controleren…');try{const {error}=await supabase.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await beginSession();}catch(err){msg('loginMessage','Inloggen mislukt: '+err.message,true)}finally{$('loginButton').disabled=false}});
+async function loadReports(){msg('dashboardMessage','Locaties ophalen…');const {data,error}=await supabase.from('location_reports').select('id,created_at,participant_name,latitude,longitude,accuracy_meters').order('created_at',{ascending:false}).limit(50);const body=$('reportsBody');body.replaceChildren();if(error){msg('dashboardMessage','Ophalen mislukt: '+error.message,true);return;}if(!data.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.textContent='Nog geen vrijwillig gedeelde locaties ontvangen.';tr.append(td);body.append(tr);msg('dashboardMessage','Verbinding geslaagd. Er zijn nog geen locatiegegevens.');return;}for(const item of data){const tr=document.createElement('tr');const cells=[new Date(item.created_at).toLocaleString('nl-NL'),item.participant_name||'Anoniem',`${Number(item.latitude).toFixed(5)}, ${Number(item.longitude).toFixed(5)}`,item.accuracy_meters==null?'Onbekend':`± ${Math.round(item.accuracy_meters)} m`];for(const value of cells){const td=document.createElement('td');td.textContent=value;tr.append(td)}const td=document.createElement('td');const a=document.createElement('a');a.textContent='Kaart';a.target='_blank';a.rel='noopener noreferrer';a.href=`https://www.openstreetmap.org/?mlat=${encodeURIComponent(item.latitude)}&mlon=${encodeURIComponent(item.longitude)}#map=16/${encodeURIComponent(item.latitude)}/${encodeURIComponent(item.longitude)}`;td.append(a,document.createTextNode(' '));const del=document.createElement('button');del.className='danger';del.textContent='Verwijder';del.addEventListener('click',async()=>{if(!confirm('Deze locatie definitief verwijderen?'))return;del.disabled=true;const {error}=await supabase.from('location_reports').delete().eq('id',item.id);if(error){alert('Verwijderen mislukt: '+error.message);del.disabled=false;}else await loadReports()});td.append(del);tr.append(td);body.append(tr)}msg('dashboardMessage',`${data.length} registratie(s) opgehaald.`)}
+$('inviteForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const label=$('inviteLabel').value.trim();
+  if(label.length<1||label.length>80){msg('inviteMessage','Gebruik een naam van 1 tot 80 tekens.',true);return;}
+  const button=$('createInviteButton');button.disabled=true;
+  $('inviteResult').hidden=true;
+  msg('inviteMessage','Beveiligde uitnodiging maken…');
+  try{
+    const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
+    if(sessionError||!sessionData.session)throw new Error('Log opnieuw in als beheerder.');
+    const response=await fetch(url+'/functions/v1/digital-trace-invite',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+sessionData.session.access_token},
+      body:JSON.stringify({label})
+    });
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error((result.message||'Onbekende serverfout')+' (HTTP '+response.status+')');
+    if(typeof result.link!=='string'||!result.link.startsWith('https://rkaltofen.github.io/digital-trace/'))throw new Error('De server gaf geen geldige uitnodigingslink terug.');
+    $('inviteLink').value=result.link;
+    $('inviteExpires').textContent='Geldig tot: '+new Date(result.expires_at).toLocaleString('nl-NL');
+    $('inviteResult').hidden=false;
+    msg('inviteMessage','Uitnodiging aangemaakt. De link is klaar voor een persoonlijke test; gebruik hem nog niet klassikaal.');
+    $('inviteLabel').value='';
+  }catch(err){msg('inviteMessage','Aanmaken mislukt: '+err.message,true)}
+  finally{button.disabled=false}
+});
+$('copyInviteButton').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText($('inviteLink').value);msg('inviteMessage','Persoonlijke link gekopieerd. Deel deze voorlopig alleen tijdens je eigen test.');}
+  catch{ $('inviteLink').focus();$('inviteLink').select();msg('inviteMessage','Selecteer en kopieer de link handmatig.',true); }
+});
+$('refreshButton').addEventListener('click',loadReports);$('logoutButton').addEventListener('click',async()=>{await supabase.auth.signOut();await showLogin();msg('loginMessage','Je bent uitgelogd.')});beginSession().catch(e=>msg('loginMessage',e.message,true));
+</script></body></html>
